@@ -25,6 +25,7 @@ const petals = {
 const pathWidth = 120
 const pathHeight = 120
 const perRow = 7
+const svgHeight = (Math.ceil(movieData.length / perRow) + 0.5) * pathWidth
 
 const calculateGridPos = (i) => {
   return [(i % perRow + 0.5) * pathWidth, (Math.floor(i / perRow) + 0.5) * pathWidth]
@@ -57,27 +58,22 @@ function drawChart() {
 };
 
 function drawPetals() {
-  const htmlSvg = `<svg width=500 height=100 style='border: 1px dashed'>
-      <path transform='translate(50, 0)' />
-      <path transform='translate(150, 0)' />
-      <path transform='translate(250, 0)' />
-      <path transform='translate(350, 0)' />
-      <path transform='translate(450, 0)' />
-    </svg>`;
+
+  const htmlSvg = `<svg id="svgCont" width=${perRow * pathWidth} height=${svgHeight} style='border: 1px dashed'></svg>`;
 
   const container = document.querySelector('div.petals_container2');
   container.innerHTML = htmlSvg;
 
-  const svg = d3.select(container);
+  const svg = d3.select(container).select('#svgCont');
 
   const selectAll = svg.selectAll('path')
-    .data(movieData)
+    .data(movieData).enter().append('path')
     .attr('d', (d) => petals[d[1].Rated])
+    .attr('transform', (d,i) => `translate(${calculateGridPos(i)}) scale(${d[1].imdbRating * 0.15})`)
     .attr('fill', (d) => colors[d[1].Genre.split(',')[0]] || colors.Other)
     .attr('fill-opacity', 0.5)
     .attr('stroke', (d) => colors[d[1].Genre.split(',')[0]] || colors.Other)
 
-  console.log(selectAll)
 }
 
 drawChart();
