@@ -32,22 +32,18 @@ const calculateGridPos = (i) => {
 }
 
 function drawChart() {
-  // const smileyPath = 'M0,0 C50,40 50,70 20,100 L0,85 L-20,100 C-50,70 -50,40 0,0'
   const htmlSvg = `
-  <svg id='svgCont' width=${rectWidth * data.length} height=100 style='border: 1px dashed' >
-    <rect />
-    <rect />
-    <rect />
-    <rect />
-    <rect />
-  </svg>
+    <svg id='svgCont' width=${rectWidth * data.length} height=100 style='border: 1px dashed' >
+    </svg>
   `;
   const container = document.querySelector('div.chart_container');
   container.innerHTML = htmlSvg;
 
-  const svg = d3.select(container);
+  const svg = d3.select(container).select('#svgCont');
   const selectAll = svg.selectAll('rect')
     .data(data)
+    .enter()
+    .append('rect')
     .attr('x', (d, i) => i * rectWidth)
     .attr('y', (d, i) => 100 - d)
     .attr('height', (d) => d)
@@ -56,6 +52,7 @@ function drawChart() {
     .attr('stroke', 'plum')
     .attr('fill', 'pink')
 };
+
 
 function drawPetals() {
 
@@ -110,5 +107,5 @@ function drawScaledChart() {
 };
 
 drawChart();
-drawScaledChart();
-drawPetals()
+// drawScaledChart();
+// drawPetals()
