@@ -84,8 +84,8 @@ function drawScaledChart() {
   container.innerHTML = htmlSvg;
 
   const xScale = d3.scaleBand()
-    .domain(["0", "1", "2", "3", "4", "5", "6", "7", "8"])
-    .range([0, rectWidth * data2.length])
+    .domain(Object.keys(data2).map(x => Number(x)))
+    .range([0, 650])
     .padding(0.35)
 
   const maxDataValue = d3.max(data2, d => d);
@@ -106,6 +106,6 @@ function drawScaledChart() {
     .attr('fill', 'pink')
 };
 
-drawChart();
-// drawScaledChart();
+// drawChart();
+drawScaledChart();
 // drawPetals()
