@@ -73,33 +73,38 @@ function drawPetals() {
 
 }
 
-const data2 = [98, 34, 23, 58, 75, 10, 45, 91];
+const data2 = [88, 34, 23, 58, 75, 10, 45, 98];
 
 function drawScaledChart() {
   const htmlSvg = `
-  <svg id='container' width=${rectWidth * data2.length} height=200 style='border: 1px dashed' >
+  <svg id='container' width=${(rectWidth + 20*2) * data2.length} height=200 style='border: 1px dashed' >
   </svg>
   `;
   const container = document.querySelector('div.scaledChart_container');
   container.innerHTML = htmlSvg;
 
+  const contHeight = 200;
+  const padding = 0.2;
+
   const xScale = d3.scaleBand()
     .domain(Object.keys(data2).map(x => Number(x)))
     .range([0, 650])
-    .padding(0.35)
+    .padding(padding)
 
   const maxDataValue = d3.max(data2, d => d);
 
   const yScale = d3.scaleLinear()
     .domain([0, maxDataValue])
-    .range([200, 0]) // 200 it's predefined height
+    .range([0, contHeight-5]) // contHeight it's predefined height
+
+  console.log('yScale:', yScale(50))
 
   const svg = d3.select(container).select('svg');
   const selectAll = svg.selectAll('rect')
     .data(data2).enter().append('rect')
     .attr('x', (d, i) => xScale(i))
     .attr('y', (d, i) => yScale(d))
-    .attr('height', (d) => d)
+    .attr('height', (d) => contHeight - yScale(d))
     .attr('width', rectWidth)
     .attr('stroke-width', 3)
     .attr('stroke', 'plum')
@@ -107,5 +112,6 @@ function drawScaledChart() {
 };
 
 // drawChart();
-drawScaledChart();
+// drawScaledChart();
 // drawPetals()
+
