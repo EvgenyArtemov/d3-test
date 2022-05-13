@@ -2,10 +2,38 @@ import '../src/SCSS/base.scss';
 import * as d3 from "d3";
 import movies from './movies.json';
 
+
+// Simple Hand Made Bar Chart 
+
 const data = [45, 67, 96, 84, 41];
+const rectWidth = 50;
+
+function drawChart() {
+  const htmlSvg = `
+    <svg id='svgCont' width=${rectWidth * data.length} height=100 style='border: 1px dashed' >
+    </svg>
+  `;
+  const container = document.querySelector('div.chart_container');
+  container.innerHTML = htmlSvg;
+
+  const svg = d3.select(container).select('#svgCont');
+  svg.selectAll('rect')
+    .data(data)
+    .enter()
+    .append('rect')
+    .attr('x', (_, i) => i * rectWidth)
+    .attr('y', (d) => 100 - d)
+    .attr('height', d => d)
+    .attr('width', rectWidth)
+    .attr('stroke-width', 3)
+    .attr('stroke', 'plum')
+    .attr('fill', 'pink')
+};
+
+// Petals Movie Chart
+
 let movieData = [];
 movieData = Object.entries(movies);
-const rectWidth = 50;
 
 const colors = {
   Action: "#ffc8f0",
@@ -31,29 +59,6 @@ const calculateGridPos = (i) => {
   return [(i % perRow + 0.5) * pathWidth, (Math.floor(i / perRow) + 0.5) * pathWidth]
 }
 
-function drawChart() {
-  const htmlSvg = `
-    <svg id='svgCont' width=${rectWidth * data.length} height=100 style='border: 1px dashed' >
-    </svg>
-  `;
-  const container = document.querySelector('div.chart_container');
-  container.innerHTML = htmlSvg;
-
-  const svg = d3.select(container).select('#svgCont');
-  const selectAll = svg.selectAll('rect')
-    .data(data)
-    .enter()
-    .append('rect')
-    .attr('x', (d, i) => i * rectWidth)
-    .attr('y', (d, i) => 100 - d)
-    .attr('height', (d) => d)
-    .attr('width', rectWidth)
-    .attr('stroke-width', 3)
-    .attr('stroke', 'plum')
-    .attr('fill', 'pink')
-};
-
-
 function drawPetals() {
 
   const htmlSvg = `<svg id="svgCont" width=${perRow * pathWidth} height=${svgHeight} style='border: 1px dashed'></svg>`;
@@ -63,7 +68,7 @@ function drawPetals() {
 
   const svg = d3.select(container).select('#svgCont');
 
-  const selectAll = svg.selectAll('path')
+  svg.selectAll('path')
     .data(movieData).enter().append('path')
     .attr('d', (d) => petals[d[1].Rated])
     .attr('transform', (d,i) => `translate(${calculateGridPos(i)}) scale(${d[1].imdbRating * 0.15})`)
@@ -72,6 +77,8 @@ function drawPetals() {
     .attr('stroke', (d) => colors[d[1].Genre.split(',')[0]] || colors.Other)
 
 }
+
+// Scaled Chart
 
 const data2 = [98, 34, 23, 58, 75, 10, 45, 91];
 
@@ -107,5 +114,5 @@ function drawScaledChart() {
 };
 
 drawChart();
-// drawScaledChart();
-// drawPetals()
+drawPetals()
+drawScaledChart();
