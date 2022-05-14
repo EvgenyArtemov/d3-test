@@ -75,7 +75,6 @@ const numPetalScale = d3.scaleQuantize()
   .range([5, 6, 7, 8, 9, 10, 11])
 
 const flowers = movieData.map((movie, i) => {
-  console.log('genre split', movie.Genre.split(',')[0])
   return {
     title: movie.Title,
     translate: calculateGridPos(i),
@@ -86,9 +85,6 @@ const flowers = movieData.map((movie, i) => {
   }
 })
 
-console.log(flowers)
-console.log(movieData)
-
 function drawPetals() {
 
   const htmlSvg = `<svg id="svgCont" width=${perRow * pathWidth} height=${svgHeight} style='border: 1px dashed'></svg>`;
@@ -97,14 +93,40 @@ function drawPetals() {
   container.innerHTML = htmlSvg;
 
   const svg = d3.select(container).select('#svgCont');
+  const group = svg.selectAll('g')
+    .data(flowers).enter().append('g')
 
-  svg.selectAll('path')
-    .data(flowers).enter().append('path')
-    .attr('d', (d) => d.path)
-    .attr('transform', (d,i) => `translate(${d.translate}) scale(${d.scale})`)
-    .attr('fill', (d) => d.color)
+  const path = group.selectAll('path')
+    .data(d => Array.from({length: d.numPetals}, (_, i) => (
+      {
+        ...d,
+        rotate: i * (360 / d.numPetals)})
+    )).enter().append('path')
+
+  const text = group.append('text').text(d => d.title)
+  
+
+  group.attr('transform', (d, i) => `translate(${d.translate})`)
+
+  text.attr('text-anchor', 'middle')
+  .attr('dy', '.35em')
+  .style('font-size', '.7em')
+  .style('font-style', 'italic')
+  .text(d => d.title.length > 20 ? d.title.slice(0, 20).concat('...') : d.title)
+
+  path.attr('transform', d => `rotate(${d.rotate}) scale(${d.scale})`)
+    .attr('fill', d => d.color)
+    .attr('d', d => d.path)
     .attr('fill-opacity', 0.5)
-    .attr('stroke', (d) => d.color)
+    .attr('stroke', d => d.color)
+
+  // svg.selectAll('path')
+  //   .data(flowers).enter().append('path')
+  //   .attr('d', (d) => d.path)
+  //   .attr('transform', (d,i) => `translate(${d.translate}) scale(${d.scale})`)
+  //   .attr('fill', (d) => d.color)
+  //   .attr('fill-opacity', 0.5)
+  //   .attr('stroke', (d) => d.color)
 
 }
 
