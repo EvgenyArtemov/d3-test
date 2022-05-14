@@ -4,7 +4,6 @@ import movies from './movies.json';
 
 
 // Simple Hand Made Bar Chart 
-
 const data = [45, 67, 96, 84, 41];
 const rectWidth = 50;
 
@@ -32,32 +31,63 @@ function drawChart() {
 
 // Petals Movie Chart
 
-let movieData = [];
-movieData = Object.entries(movies);
-
-const colors = {
-  Action: "#ffc8f0",
-  Comedy: "#cbf2bd",
-  Animation: "#afe9ff",
-  Drama: "#ffb09e",
-  Other: "#FFF2B4",
-}
-
-const petals = {
-  G: "M0 0 C50 50 50 100 0 100 C-50 100 -50 50 0 0",
-  PG: "M-35 0 C-25 25 25 25 35 0 C50 25 25 75 0 100 C-25 75 -50 25 -35 0",
-  "PG-13": "M0,0 C50,40 50,70 20,100 L0,85 L-20,100 C-50,70 -50,40 0,0",
-  R: "M0 0 C50 25 50 75 0 100 C-50 75 -50 25 0 0",
-}
-
+const movieData = Object.values(movies);
 const pathWidth = 120
 const pathHeight = 120
 const perRow = 7
-const svgHeight = (Math.ceil(movieData.length / perRow) + 0.5) * pathWidth
+const svgHeight = (Math.ceil(movieData.length / perRow) + 0.5) * pathWidth;
+const minMaxRating = d3.extent(movieData, d => d.imdbRating);
+const minMaxVotes = d3.extent(movieData, d => d.imdbVotes);
 
-const calculateGridPos = (i) => {
-  return [(i % perRow + 0.5) * pathWidth, (Math.floor(i / perRow) + 0.5) * pathWidth]
-}
+const colors = [
+  "#ffc8f0",
+  "#cbf2bd",
+  "#afe9ff",
+  "#ffb09e",
+  "#FFF2B4",
+]
+
+const topGenres = ["Action", "Comedy", "Animation", "Drama"];
+
+const petalPaths = [
+  "M0 0 C50 50 50 100 0 100 C-50 100 -50 50 0 0",
+  "M-35 0 C-25 25 25 25 35 0 C50 25 25 75 0 100 C-25 75 -50 25 -35 0",
+  "M0,0 C50,40 50,70 20,100 L0,85 L-20,100 C-50,70 -50,40 0,0",
+  "M0 0 C50 25 50 75 0 100 C-50 75 -50 25 0 0"
+]
+
+const calculateGridPos = (i) => [(i % perRow + 0.5) * pathWidth, (Math.floor(i / perRow) + 0.5) * pathWidth];
+
+const colorScale = d3.scaleOrdinal()
+  .domain(topGenres)
+  .range(colors)
+  .unknown(colors[4])
+
+const pathScale = d3.scaleOrdinal()
+  .range(petalPaths)
+
+const sizeScale = d3.scaleLinear()
+  .domain(minMaxRating)
+  .range([0.2, 0.75 ])
+
+const numPetalScale = d3.scaleQuantize()
+  .domain(minMaxVotes)
+  .range([5, 6, 7, 8, 9, 10, 11])
+
+const flowers = movieData.map((movie, i) => {
+  console.log('genre split', movie.Genre.split(',')[0])
+  return {
+    title: movie.Title,
+    translate: calculateGridPos(i),
+    color: colorScale(movie.Genre.split(',')[0]),
+    path: pathScale(movie.Rated),
+    scale: sizeScale(movie.imdbRating),
+    numPetals: numPetalScale(movie.imdbVotes)
+  }
+})
+
+console.log(flowers)
+console.log(movieData)
 
 function drawPetals() {
 
@@ -69,12 +99,12 @@ function drawPetals() {
   const svg = d3.select(container).select('#svgCont');
 
   svg.selectAll('path')
-    .data(movieData).enter().append('path')
-    .attr('d', (d) => petals[d[1].Rated])
-    .attr('transform', (d,i) => `translate(${calculateGridPos(i)}) scale(${d[1].imdbRating * 0.15})`)
-    .attr('fill', (d) => colors[d[1].Genre.split(',')[0]] || colors.Other)
+    .data(flowers).enter().append('path')
+    .attr('d', (d) => d.path)
+    .attr('transform', (d,i) => `translate(${d.translate}) scale(${d.scale})`)
+    .attr('fill', (d) => d.color)
     .attr('fill-opacity', 0.5)
-    .attr('stroke', (d) => colors[d[1].Genre.split(',')[0]] || colors.Other)
+    .attr('stroke', (d) => d.color)
 
 }
 
@@ -83,31 +113,34 @@ function drawPetals() {
 const data2 = [98, 34, 23, 58, 75, 10, 45, 91];
 
 function drawScaledChart() {
+  const height = 200;
   const htmlSvg = `
-  <svg id='container' width=${rectWidth * data2.length} height=200 style='border: 1px dashed' >
+  <svg id='container' width=${rectWidth * data2.length} height=${height} style='border: 1px dashed' >
   </svg>
   `;
   const container = document.querySelector('div.scaledChart_container');
   container.innerHTML = htmlSvg;
 
   const xScale = d3.scaleBand()
-    .domain(["0", "1", "2", "3", "4", "5", "6", "7", "8"])
+    .domain(Object.keys(data2))
     .range([0, rectWidth * data2.length])
     .padding(0.35)
+
 
   const maxDataValue = d3.max(data2, d => d);
 
   const yScale = d3.scaleLinear()
     .domain([0, maxDataValue])
-    .range([200, 0]) // 200 it's predefined height
+    .range([height, 0])
 
   const svg = d3.select(container).select('svg');
-  const selectAll = svg.selectAll('rect')
+  svg.selectAll('rect')
     .data(data2).enter().append('rect')
     .attr('x', (d, i) => xScale(i))
     .attr('y', (d, i) => yScale(d))
-    .attr('height', (d) => d)
+    .attr('height', (d) => height - yScale(d))
     .attr('width', rectWidth)
+    .attr('transform', (d, i) => `translate(${i*rectWidth})`)
     .attr('stroke-width', 3)
     .attr('stroke', 'plum')
     .attr('fill', 'pink')
