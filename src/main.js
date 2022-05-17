@@ -30,10 +30,18 @@ function drawChart() {
 };
 
 // Petals Movie Chart
-
+const searchInput = document.getElementById('searchInput');
+const searchBtn = document.getElementById('searchBtn');
+const clearBtn = document.getElementById('clearBtn');
+searchBtn.addEventListener('click', () => {
+  updateDrawPetals(searchInput.value);
+})
+clearBtn.addEventListener('click', () => {
+  searchInput.value = '';
+  updateDrawPetals();
+})
 const movieData = Object.values(movies);
 const pathWidth = 120
-const pathHeight = 120
 const perRow = 7
 const svgHeight = (Math.ceil(movieData.length / perRow) + 0.5) * pathWidth;
 const minMaxRating = d3.extent(movieData, d => d.imdbRating);
@@ -74,7 +82,7 @@ const numPetalScale = d3.scaleQuantize()
   .domain(minMaxVotes)
   .range([5, 6, 7, 8, 9, 10, 11])
 
-const flowers = movieData.map((movie, i) => {
+let flowers = movieData.map((movie, i) => {
   return {
     title: movie.Title,
     translate: calculateGridPos(i),
@@ -85,6 +93,18 @@ const flowers = movieData.map((movie, i) => {
   }
 })
 
+let filtered = flowers;
+
+function updateDrawPetals(filterValue = '') {
+  if(filterValue !== '') {
+    filtered = flowers.filter(movie => movie.title.toLowerCase().includes(filterValue))
+      .map((movie, i) => ({...movie, translate: calculateGridPos(i)}))
+  } else {
+    filtered = flowers;
+  }
+  drawPetals()
+}
+
 function drawPetals() {
 
   const htmlSvg = `<svg id="svgCont" width=${perRow * pathWidth} height=${svgHeight} style='border: 1px dashed'></svg>`;
@@ -94,7 +114,7 @@ function drawPetals() {
 
   const svg = d3.select(container).select('#svgCont');
   const group = svg.selectAll('g')
-    .data(flowers).enter().append('g')
+    .data(filtered).enter().append('g')
 
   const path = group.selectAll('path')
     .data(d => Array.from({length: d.numPetals}, (_, i) => (
